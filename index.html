@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A mobile-friendly expense and budget visualizer built with HTML, CSS, and vanilla JavaScript.">
+  <title>Expense & Budget Visualizer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Personal Finance</p>
+        <h1>Expense & Budget Visualizer</h1>
+        <p class="subtitle">Track daily spending, understand your habits, and stay within budget.</p>
+      </div>
+      <button id="themeToggle" class="icon-button" type="button" aria-label="Switch theme" title="Switch theme">
+        <span aria-hidden="true">☾</span>
+        <span class="button-label">Dark mode</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="hero-grid" aria-label="Financial summary">
+        <article id="balanceCard" class="summary-card summary-card-primary">
+          <span class="summary-label">Total Balance / Expenses</span>
+          <strong id="totalBalance">Rp0</strong>
+          <span id="balanceStatus" class="summary-note">No transactions yet</span>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-label">Monthly Spending</span>
+          <strong id="monthlyTotal">Rp0</strong>
+          <span id="monthlyCount" class="summary-note">0 transactions</span>
+        </article>
+
+        <article class="summary-card">
+          <span class="summary-label">Budget Limit</span>
+          <strong id="budgetDisplay">Not set</strong>
+          <span id="budgetRemaining" class="summary-note">Set a limit below</span>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <div class="left-column">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">New entry</p>
+                <h2>Add Transaction</h2>
+              </div>
+            </div>
+
+            <form id="transactionForm" novalidate>
+              <div class="form-grid">
+                <label class="field field-wide" for="itemName">
+                  <span>Item Name</span>
+                  <input id="itemName" name="itemName" type="text" placeholder="e.g. Lunch" maxlength="60" autocomplete="off" required>
+                  <small class="error-message" data-error-for="itemName"></small>
+                </label>
+
+                <label class="field" for="amount">
+                  <span>Amount</span>
+                  <div class="input-prefix">
+                    <span>Rp</span>
+                    <input id="amount" name="amount" type="number" min="1" step="1" placeholder="50000" inputmode="numeric" required>
+                  </div>
+                  <small class="error-message" data-error-for="amount"></small>
+                </label>
+
+                <label class="field" for="transactionDate">
+                  <span>Date</span>
+                  <input id="transactionDate" name="transactionDate" type="date" required>
+                  <small class="error-message" data-error-for="transactionDate"></small>
+                </label>
+
+                <label class="field field-wide" for="category">
+                  <span>Category</span>
+                  <select id="category" name="category" required>
+                    <option value="">Select category</option>
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Fun">Fun</option>
+                    <option value="__custom__">+ Add custom category</option>
+                  </select>
+                  <small class="error-message" data-error-for="category"></small>
+                </label>
+
+                <label id="customCategoryField" class="field field-wide hidden" for="customCategory">
+                  <span>Custom Category</span>
+                  <input id="customCategory" name="customCategory" type="text" placeholder="e.g. Health" maxlength="30" autocomplete="off">
+                  <small class="error-message" data-error-for="customCategory"></small>
+                </label>
+              </div>
+
+              <button class="primary-button" type="submit">Add Transaction</button>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading panel-heading-wrap">
+              <div>
+                <p class="eyebrow">History</p>
+                <h2>Transactions</h2>
+              </div>
+              <div class="toolbar">
+                <label class="compact-field" for="monthFilter">
+                  <span>Month</span>
+                  <input id="monthFilter" type="month">
+                </label>
+                <label class="compact-field" for="sortSelect">
+                  <span>Sort</span>
+                  <select id="sortSelect">
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="amount-high">Amount: high to low</option>
+                    <option value="amount-low">Amount: low to high</option>
+                    <option value="category">Category</option>
+                  </select>
+                </label>
+                <button id="clearMonthFilter" class="secondary-button" type="button">Show all</button>
+              </div>
+            </div>
+
+            <div id="transactionList" class="transaction-list" aria-live="polite"></div>
+          </article>
+        </div>
+
+        <aside class="right-column">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Insight</p>
+                <h2>Spending by Category</h2>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="expenseChart" width="420" height="420" aria-label="Pie chart showing spending distribution by category" role="img"></canvas>
+              <div id="chartEmpty" class="chart-empty">Add a transaction to see the chart.</div>
+            </div>
+            <div id="chartLegend" class="chart-legend"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Optional challenge</p>
+                <h2>Spending Limit</h2>
+              </div>
+            </div>
+            <form id="budgetForm" class="budget-form">
+              <label class="field" for="budgetLimit">
+                <span>Monthly limit</span>
+                <div class="input-prefix">
+                  <span>Rp</span>
+                  <input id="budgetLimit" type="number" min="0" step="1" placeholder="2000000" inputmode="numeric">
+                </div>
+              </label>
+              <div class="button-row">
+                <button class="primary-button" type="submit">Save Limit</button>
+                <button id="removeBudget" class="secondary-button" type="button">Remove</button>
+              </div>
+            </form>
+            <div class="progress-track" aria-hidden="true">
+              <div id="budgetProgress" class="progress-bar"></div>
+            </div>
+            <p id="budgetMessage" class="budget-message">No monthly limit has been set.</p>
+          </article>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      <p>Built with HTML, CSS, Vanilla JavaScript, Canvas, and Local Storage.</p>
+    </footer>
+  </div>
+
+  <template id="emptyStateTemplate">
+    <div class="empty-state">
+      <div class="empty-icon" aria-hidden="true">↗</div>
+      <h3>No transactions found</h3>
+      <p>Add your first transaction or change the month filter.</p>
+    </div>
+  </template>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
